@@ -1,0 +1,109 @@
+FUNCTION_BLOCK
+
+VAR_INPUT
+distY : REAL;
+distFromLast: REAL;
+spdX : REAL;
+spdY: REAL;
+END_VAR
+
+VAR_OUTPUT
+speedYChange : REAL;
+END_VAR
+
+FUZZIFY distY
+TERM muchHigher := (-800, 1) (-350, 1) (-300, 0.50) (-250, 0);
+TERM higher := (-350, 0) (-300, 0.50) (-250, 1) (-73, 1) (-72, 0.50) (-71, 0);
+TERM inside := (-73, 0) (-72, 0.50) (-71, 1) (71, 1) (72, 0.50) (73, 0);
+TERM lower := (71, 0) (72, 0.50) (73, 1) (250, 1) (300, 0.50) (350, 0);
+TERM muchLower := (250, 0) (300, 0.50) (350, 1) (800, 1);
+END_FUZZIFY
+FUZZIFY distFromLast
+TERM inside := (52, 1) (104, 1) (105, 0.50) (106, 0);
+TERM outside := (104, 0) (105, 0.50) (106, 1) (600, 1);
+END_FUZZIFY
+FUZZIFY spdY
+TERM fastNegative := (-20, 1) (-14, 1) (-10, 0.50) (-6, 0);
+TERM slowNegative := (-14, 0) (-10, 0.50) (-6, 1) (-2, 1) (-1.50, 0.50) (-1, 0);
+TERM neutral := (-2, 0) (-1.50, 0.50) (-1, 1) (1, 1) (1.50, 0.50) (2, 0);
+TERM slowPositive := (1, 0) (1.50, 0.50) (2, 1) (6, 1) (10, 0.50) (14, 0);
+TERM fastPositive := (6, 0) (10, 0.50) (14, 1) (20, 1);
+END_FUZZIFY
+FUZZIFY spdX
+TERM slow := (2, 1) (4.25, 1) (5.00, 0.50) (5.75, 0);
+TERM fast := (4.25, 0) (5.00, 0.50) (5.75, 1) (6.50, 1) (7.25, 0.50) (8, 0);
+TERM veryFast := (6.50, 0) (7.25, 0.50) (8, 1) (11, 1);
+END_FUZZIFY
+
+DEFUZZIFY speedYChange
+TERM flyUpMegaFast := (-20, 1) (-14, 1) (-12, 0.50) (-10, 0);
+TERM flyUpFast := (-14, 0) (-12, 0.50) (-10, 1) (-7, 1) (-5, 0.50) (-3, 0);
+TERM flyUpSlow := (-7, 0) (-5, 0.50) (-3, 1) (-0.30, 1) (-0.20, 0.50) (-0.10, 0);
+TERM stay := (-0.30, 0) (-0.20, 0.50) (-0.10, 1) (0.10, 1) (0.20, 0.50) (0.30, 0);
+TERM flyDownSlow := (0.10, 0) (0.20, 0.50) (0.30, 1) (4, 1) (6, 0.50) (8, 0);
+TERM flyDownFast := (3, 0) (5, 0.50) (7, 1) (10, 1);
+TERM flyDownMegaFast := (10, 0) (12, 0.50) (14, 1) (20, 1);
+METHOD : COG;
+DEFAULT := 0;
+END_DEFUZZIFY
+
+RULEBLOCK first
+AND: MIN;
+ACT: MIN;
+
+RULE 0: IF distY IS muchHigher AND spdY IS fastNegative THEN speedYChange IS flyDownMegaFast;
+RULE 1: IF distY IS muchHigher AND spdY IS slowNegative THEN speedYChange IS flyDownFast;
+RULE 2: IF distY IS muchHigher AND spdY IS neutral THEN speedYChange IS flyDownFast;
+RULE 3: IF distY IS muchHigher AND spdY IS slowPositive THEN speedYChange IS flyDownSlow;
+RULE 4: IF distY IS muchHigher AND spdY IS fastPositive THEN speedYChange IS flyDownSlow;
+
+RULE 5: IF distY IS higher AND spdY IS fastNegative THEN speedYChange IS flyDownFast;
+RULE 6: IF distY IS higher AND spdY IS slowNegative THEN speedYChange IS flyDownFast;
+RULE 7: IF distY IS higher AND spdY IS neutral THEN speedYChange IS flyDownSlow;
+RULE 8: IF distY IS higher AND spdY IS slowPositive THEN speedYChange IS flyDownSlow;
+RULE 9: IF distY IS higher AND spdY IS fastPositive THEN speedYChange IS stay;
+
+RULE 10: IF distY IS inside AND spdY IS fastNegative THEN speedYChange IS flyDownFast;
+RULE 11: IF distY IS inside AND spdY IS slowNegative THEN speedYChange IS flyDownSlow;
+RULE 12: IF distY IS inside AND spdY IS neutral THEN speedYChange IS stay;
+RULE 13: IF distY IS inside AND spdY IS slowPositive THEN speedYChange IS flyUpSlow;
+RULE 14: IF distY IS inside AND spdY IS fastPositive THEN speedYChange IS flyUpFast;
+
+RULE 15: IF distY IS lower AND spdY IS fastNegative THEN speedYChange IS stay;
+RULE 16: IF distY IS lower AND spdY IS slowNegative THEN speedYChange IS flyUpSlow;
+RULE 17: IF distY IS lower AND spdY IS neutral THEN speedYChange IS flyUpSlow;
+RULE 18: IF distY IS lower AND spdY IS slowPositive THEN speedYChange IS flyUpFast;
+RULE 19: IF distY IS lower AND spdY IS fastPositive THEN speedYChange IS flyUpFast;
+
+RULE 20: IF distY IS muchLower AND spdY IS fastNegative THEN speedYChange IS flyUpSlow;
+RULE 21: IF distY IS muchLower AND spdY IS slowNegative THEN speedYChange IS flyUpSlow;
+RULE 22: IF distY IS muchLower AND spdY IS neutral THEN speedYChange IS flyUpFast;
+RULE 23: IF distY IS muchLower AND spdY IS slowPositive THEN speedYChange IS flyUpFast;
+RULE 24: IF distY IS muchLower AND spdY IS fastPositive THEN speedYChange IS flyUpMegaFast;
+
+END_RULEBLOCK
+RULEBLOCK second
+AND: MIN;
+ACT: MIN;
+
+RULE 0: IF distFromLast IS inside AND spdY IS fastNegative THEN speedYChange IS flyDownFast;
+RULE 1: IF distFromLast IS inside AND spdY IS slowNegative THEN speedYChange IS flyDownSlow;
+RULE 2: IF distFromLast IS inside AND spdY IS neutral THEN speedYChange IS stay;
+RULE 3: IF distFromLast IS inside AND spdY IS slowPositive THEN speedYChange IS flyUpSlow;
+RULE 4: IF distFromLast IS inside AND spdY IS fastPositive THEN speedYChange IS flyUpFast;
+
+END_RULEBLOCK
+RULEBLOCK third
+AND: MIN;
+ACT: MIN;
+
+RULE 0: IF spdX IS fast AND speedYChange IS flyDownFast THEN speedYChange IS flyDownMegaFast;
+RULE 1: IF spdX IS fast AND speedYChange IS flyDownSlow THEN speedYChange IS flyDownFast;
+RULE 2: IF spdX IS fast AND speedYChange IS stay THEN speedYChange IS stay;
+RULE 3: IF spdX IS fast AND speedYChange IS flyUpSlow THEN speedYChange IS flyUpFast;
+RULE 4: IF spdX IS fast AND speedYChange IS flyUpFast THEN speedYChange IS flyUpMegaFast;
+
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
