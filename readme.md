@@ -2,7 +2,7 @@
 
 Game inspired by "Flappy bird" game
 
-![Alt text](./readme_images/gameplay.png?raw=true)
+<img src="./readme_images/gameplay.png?raw=true" alt="Alt text" style="zoom:50%;" />
 
 #### Rules
 
@@ -27,9 +27,9 @@ Goal can be to either beat the bots or get as high score as one can get
 
 #### Technicals
 
-- Bots are implemented using fuzzy logic. Bots' source codes can be found under resources/fcl
-- Game is written in Java and UI is made using Swing
-- Under directory 'runnable' there is a .jar file that you can run with command
+- Bots are implemented using fuzzy logic with help of jFuzzyLogic library
+- Game is written in Java and UI is made with Swing
+- Under directory 'runnable' there is a .jar file launching the game that you can run with a command:
 ```
 java -jar FluffyBird.jar
 ```
